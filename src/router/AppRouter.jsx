@@ -6,6 +6,7 @@ import HomePage from "../pages/HomePage";
 import InspectorPage from "../pages/InspectorPage";
 import LoginPage from "../pages/LoginPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import NotFoundPage from "../pages/NotFoundPage";
 import OrdersPage from "../pages/OrdersPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import ProductsPage from "../pages/ProductsPage";
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/inspector" element={<InspectorPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );
