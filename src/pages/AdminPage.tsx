@@ -17,6 +17,7 @@ import {
   updateUserRole,
   uploadProductImage,
 } from "../api";
+import Modal from "../components/common/Modal";
 import { clearAuthToken, getAuthToken } from "../hooks/useAuthToken";
 import { showToast } from "../hooks/useToast";
 import { formatToman } from "../utils/format";
@@ -212,9 +213,7 @@ export default function AdminPage() {
     bootstrap();
   }, []);
 
-  if (!ready) {
-    return <div className="p-8" dir="rtl">در حال بررسی دسترسی...</div>;
-  }
+  // render loading until ready (moved below to keep hooks order stable)
 
   const resetCreateForm = () => {
     setNewName("");
@@ -225,6 +224,30 @@ export default function AdminPage() {
     setNewFeatures("");
     setNewDescription("");
     setNewImage(null);
+  };
+
+  // modal state for creating category
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const openCategoryModal = () => {
+    setNewCategoryName("");
+    setCategoryModalOpen(true);
+  };
+
+  const closeCategoryModal = () => setCategoryModalOpen(false);
+
+  const submitCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return showToast('نام دسته را وارد کنید', 'error');
+    try {
+      await createCategory(newCategoryName.trim());
+      await fetchCategories();
+      closeCategoryModal();
+      showToast('دسته با موفقیت ایجاد شد', 'success');
+    } catch (err) {
+      showToast(err?.message || 'خطا در ایجاد دسته', 'error');
+    }
   };
 
   const submitCreateProduct = async (event) => {
@@ -333,16 +356,8 @@ export default function AdminPage() {
     }
   };
 
-  const addCategory = async () => {
-    const name = window.prompt("نام دسته‌بندی جدید را وارد کنید") || "";
-    if (!name.trim()) return;
-    try {
-      await createCategory(name.trim());
-      await fetchCategories();
-      showToast("دسته‌بندی ایجاد شد", "success");
-    } catch (error) {
-      showToast(error.message || "ایجاد دسته‌بندی ناموفق بود", "error");
-    }
+  const addCategory = () => {
+    openCategoryModal();
   };
 
   const removeCategory = async (id) => {
@@ -394,6 +409,10 @@ export default function AdminPage() {
   };
 
   const maxPage = Math.max(1, Math.ceil(usersTotal / usersLimit));
+
+  if (!ready) {
+    return <div className="p-8" dir="rtl">در حال بررسی دسترسی...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-violet-50 px-4 py-6 text-right md:px-6" dir="rtl">
@@ -508,6 +527,21 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
+                <Modal open={categoryModalOpen} title="افزودن دسته‌بندی" onClose={closeCategoryModal}>
+                  <form onSubmit={submitCreateCategory}>
+                    <input
+                      autoFocus
+                      className="w-full rounded border border-violet-200 px-3 py-2"
+                      placeholder="نام دسته جدید"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button type="button" onClick={closeCategoryModal} className="rounded border px-3 py-2">انصراف</button>
+                      <button type="submit" className="rounded bg-green-600 px-3 py-2 text-white">ایجاد</button>
+                    </div>
+                  </form>
+                </Modal>
             </section>
           )}
 

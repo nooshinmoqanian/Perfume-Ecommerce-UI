@@ -12,7 +12,7 @@ export const reserveProduct = (payload) =>
 
 export const listCategories = () => apiFetch(buildApiUrl("products", "/categories"));
 export const createCategory = (name) =>
-  apiFetch(buildApiUrl("products", "/categories"), {
+  apiFetch(buildApiUrl("products", "/categories/add"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
