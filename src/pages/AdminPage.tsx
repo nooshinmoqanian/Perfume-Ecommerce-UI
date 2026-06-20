@@ -18,9 +18,10 @@ import {
   uploadProductImage,
 } from "../api";
 import Modal from "../components/common/Modal";
-import { clearAuthToken, getAuthToken } from "../hooks/useAuthToken";
+import { clearAuthToken, DEV_ADMIN_TOKEN, getAuthToken } from "../hooks/useAuthToken";
 import { showToast } from "../hooks/useToast";
 import { formatToman } from "../utils/format";
+import { ADMIN_LOGIN_PATH } from "../router/paths";
 
 function CategorySelector({ value, onChange, categories }) {
   const [typedValue, setTypedValue] = useState("");
@@ -189,11 +190,11 @@ export default function AdminPage() {
     const bootstrap = async () => {
       try {
         if (!token) {
-          window.location.assign("/login");
+          window.location.assign(ADMIN_LOGIN_PATH);
           return;
         }
 
-        if (token !== "dev-admin-1345678") {
+        if (token !== DEV_ADMIN_TOKEN) {
           const me = await getMe(token);
           if (me?.role !== "admin") {
             showToast("دسترسی مدیر لازم است", "error");
@@ -206,7 +207,7 @@ export default function AdminPage() {
         setReady(true);
       } catch {
         clearAuthToken();
-        window.location.assign("/login");
+        window.location.assign(ADMIN_LOGIN_PATH);
       }
     };
 

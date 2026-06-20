@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Header from "../components/layout/Header";
+import NavBar from "../components/layout/NavBar";
+import FloatingCartButton from "../components/cart/FloatingCartButton";
 import { Link } from "react-router-dom";
 import { getProductImageUrl, listProducts } from "../api";
 import { useCart } from "../hooks/useCart";
@@ -31,10 +32,22 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [slideIndex, setSlideIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
-  const [cycles, setCycles] = useState(0);
+  const heroRef = useRef<HTMLElement | null>(null);
+  // The shared nav bar stays hidden until the hero/slider scrolls out of view.
+  const [showNav, setShowNav] = useState(false);
 
   useEffect(() => {
     listProducts().then((data) => setProducts(Array.isArray(data) ? data : [])).catch(() => setProducts([]));
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const heroHeight = heroRef.current?.offsetHeight ?? window.innerHeight * 0.7;
+      setShowNav(window.scrollY > heroHeight - 80);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const topSlides = useMemo(() => products.slice(0, 4), [products]);
@@ -54,11 +67,7 @@ export default function HomePage() {
   useEffect(() => {
     if (topSlides.length < 2) return undefined;
     timerRef.current = window.setInterval(() => {
-      setSlideIndex((prev) => {
-        const next = (prev + 1) % topSlides.length;
-        if (next === 0) setCycles((c) => c + 1);
-        return next;
-      });
+      setSlideIndex((prev) => (prev + 1) % topSlides.length);
     }, 4000);
 
     return () => {
@@ -74,8 +83,26 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#f6f2ff] text-violet-950">
-      {cycles > 0 && <Header />}
-      <section className="border-b border-violet-200/50 bg-gradient-to-b from-[#f5eeff] to-[#f9f2e4]">
+      {/* Shared nav bar slides in once the hero is scrolled past. */}
+      <div
+        className={`fixed inset-x-0 top-0 z-50 transition-transform duration-300 ${
+          showNav ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        <NavBar />
+      </div>
+
+      {/* While the bar is hidden, keep the cart reachable with a floating button. */}
+      {!showNav && (
+        <div className="fixed left-4 top-4 z-40">
+          <FloatingCartButton inline />
+        </div>
+      )}
+
+      <section
+        ref={heroRef}
+        className="border-b border-violet-200/50 bg-gradient-to-b from-[#f5eeff] to-[#f9f2e4]"
+      >
         {topSlides.length === 0 ? (
           <div className="grid h-[70vh] place-items-center text-violet-900">در حال بارگذاری محصولات...</div>
         ) : (

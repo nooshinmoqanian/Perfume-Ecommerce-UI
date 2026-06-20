@@ -1,8 +1,9 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login, register } from "../../api";
-import { setAuthToken } from "../../hooks/useAuthToken";
+import { setAuthSession } from "../../hooks/useAuthToken";
 import { normalizeNumberString } from "../../utils/format";
+import Logo from "../layout/Logo";
 
 type AuthMode = "login" | "register";
 
@@ -49,8 +50,15 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
           ? await register({ email: normalizedEmail, password: normalizedPassword, role: "user" })
           : await login({ email: normalizedEmail, password: normalizedPassword });
 
-      setAuthToken(response.token);
-      navigate("/admin");
+      const user = response?.user ?? { email: normalizedEmail, role: "user" as const };
+      setAuthSession(response.token, {
+        ...user,
+        // Keep the typed name locally until the profile is loaded from the backend.
+        name: mode === "register" ? fullName.trim() : user.name,
+      });
+
+      // Admins land on the panel; regular users go to their account.
+      navigate(user.role === "admin" ? "/admin" : "/account");
     } catch (err) {
       const message = err instanceof Error ? err.message : "خطا در ارتباط با سرور";
       setError(message);
@@ -59,42 +67,46 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
     }
   };
 
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-[#2b1055]" dir="rtl">
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,#5f1f88_0%,#b63f93_42%,#ea83a8_68%,#f3b4a3_100%)]" />
+  const inputClass =
+    "h-11 rounded-xl border border-violet-200 bg-white px-4 text-violet-900 placeholder:text-violet-300 focus:border-violet-500 focus:outline-none";
 
-      <div className="absolute inset-x-0 bottom-0 h-[56vh] bg-[#5c237e]/70 [clip-path:polygon(0_65%,13%_58%,27%_66%,38%_55%,52%_64%,64%_53%,78%_61%,89%_52%,100%_58%,100%_100%,0_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-[42vh] bg-[#4b1f6d]/80 [clip-path:polygon(0_72%,14%_61%,29%_70%,41%_59%,57%_68%,73%_58%,86%_66%,100%_57%,100%_100%,0_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-[28vh] bg-[#3a1459]/85 [clip-path:polygon(0_74%,19%_66%,35%_74%,52%_65%,67%_74%,84%_66%,100%_72%,100%_100%,0_100%)]" />
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#f9f2e4]" dir="rtl">
+      {/* Soft cream → blush → pink wash that matches the storefront palette. */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#f9f2e4_0%,#f7e6ec_45%,#f1d3e0_72%,#e9bcd2_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-[56vh] bg-[#f3d9e4]/70 [clip-path:polygon(0_65%,13%_58%,27%_66%,38%_55%,52%_64%,64%_53%,78%_61%,89%_52%,100%_58%,100%_100%,0_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-[42vh] bg-[#ecc2d6]/70 [clip-path:polygon(0_72%,14%_61%,29%_70%,41%_59%,57%_68%,73%_58%,86%_66%,100%_57%,100%_100%,0_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-[28vh] bg-[#e3a9c6]/60 [clip-path:polygon(0_74%,19%_66%,35%_74%,52%_65%,67%_74%,84%_66%,100%_72%,100%_100%,0_100%)]" />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
-        <header className="mb-12 flex items-center justify-between text-white/90">
-          <nav className="mx-auto hidden items-center gap-14 text-sm md:flex">
-            <Link to="/" className="transition hover:text-white">
+        <header className="mb-12 flex items-center justify-between text-violet-900">
+          <Link to="/" aria-label="خانه">
+            <Logo />
+          </Link>
+
+          <nav className="mx-auto hidden items-center gap-12 text-sm md:flex">
+            <Link to="/" className="transition hover:text-violet-700">
               خانه
             </Link>
-            <Link to="/products" className="transition hover:text-white">
+            <Link to="/products" className="transition hover:text-violet-700">
               فروشگاه
             </Link>
-            <Link to="/about" className="transition hover:text-white">
-              تماس با ما
-            </Link>
-            <Link to="/about" className="transition hover:text-white">
+            <Link to="/about" className="transition hover:text-violet-700">
               درباره ما
             </Link>
           </nav>
 
           <Link
             to={mode === "register" ? "/login" : "/register"}
-            className="rounded-md border border-white/60 px-4 py-1 text-xs text-white/90 transition hover:bg-white/10"
+            className="rounded-md border border-violet-300 px-4 py-1 text-xs text-violet-800 transition hover:bg-white/60"
           >
             {mode === "register" ? "ورود" : "ثبت نام"}
           </Link>
         </header>
 
         <main className="mx-auto grid flex-1 place-items-center">
-          <section className="w-full max-w-md rounded-2xl border border-white/35 bg-white/12 p-6 shadow-2xl backdrop-blur-md md:p-8">
-            <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/25 bg-white/10 p-1">
+          <section className="w-full max-w-md rounded-2xl border border-white/70 bg-white/75 p-6 shadow-glass backdrop-blur-md md:p-8">
+            <div className="mb-5 grid grid-cols-2 rounded-xl border border-violet-100 bg-violet-50/60 p-1">
               <button
                 type="button"
                 onClick={() => {
@@ -102,7 +114,7 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
                   setError("");
                 }}
                 className={`rounded-lg px-4 py-2 text-sm transition ${
-                  mode === "register" ? "bg-white/85 text-violet-900" : "text-white/80 hover:bg-white/10"
+                  mode === "register" ? "bg-violet-700 text-white shadow" : "text-violet-700 hover:bg-white/70"
                 }`}
               >
                 ثبت نام
@@ -114,21 +126,21 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
                   setError("");
                 }}
                 className={`rounded-lg px-4 py-2 text-sm transition ${
-                  mode === "login" ? "bg-white/85 text-violet-900" : "text-white/80 hover:bg-white/10"
+                  mode === "login" ? "bg-violet-700 text-white shadow" : "text-violet-700 hover:bg-white/70"
                 }`}
               >
                 ورود
               </button>
             </div>
 
-            <h2 className="mb-6 text-center text-2xl font-bold text-white">{title}</h2>
+            <h2 className="mb-6 text-center text-2xl font-bold text-violet-900">{title}</h2>
 
             <form className="grid gap-4" onSubmit={submit}>
               {mode === "register" && (
-                <label className="grid gap-2 text-sm text-white/90">
+                <label className="grid gap-2 text-sm text-violet-900">
                   نام و نام خانوادگی
                   <input
-                    className="h-11 rounded-xl border border-white/30 bg-white/15 px-4 text-white placeholder:text-white/60 focus:border-white/60 focus:outline-none"
+                    className={inputClass}
                     placeholder="مثال: نازنین احمدی"
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
@@ -136,21 +148,21 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
                 </label>
               )}
 
-              <label className="grid gap-2 text-sm text-white/90">
+              <label className="grid gap-2 text-sm text-violet-900">
                 ایمیل
                 <input
-                  className="h-11 rounded-xl border border-white/30 bg-white/15 px-4 text-white placeholder:text-white/60 focus:border-white/60 focus:outline-none"
+                  className={inputClass}
                   placeholder="example@email.com"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
               </label>
 
-              <label className="grid gap-2 text-sm text-white/90">
+              <label className="grid gap-2 text-sm text-violet-900">
                 رمز عبور
                 <input
                   type="password"
-                  className="h-11 rounded-xl border border-white/30 bg-white/15 px-4 text-white placeholder:text-white/60 focus:border-white/60 focus:outline-none"
+                  className={inputClass}
                   placeholder="********"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -158,7 +170,7 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
               </label>
 
               {mode === "register" && (
-                <label className="mt-1 flex items-center gap-2 text-xs text-white/90">
+                <label className="mt-1 flex items-center gap-2 text-xs text-violet-800">
                   <input
                     type="checkbox"
                     checked={agreeTerms}
@@ -169,17 +181,19 @@ export default function AuthTabsCard({ defaultMode }: AuthTabsCardProps) {
                 </label>
               )}
 
-              {error && <div className="rounded-lg border border-red-300/50 bg-red-500/15 px-3 py-2 text-sm text-red-100">{error}</div>}
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>
+              )}
 
               <button
-                className="mt-2 h-11 rounded-xl bg-gradient-to-r from-violet-800 via-purple-700 to-violet-900 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-2 h-11 rounded-xl bg-gradient-to-r from-violet-700 to-[#8b1e55] text-sm font-semibold text-white shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={loading}
               >
                 {loading ? "در حال پردازش..." : mode === "register" ? "ثبت نام" : "ورود"}
               </button>
             </form>
 
-            <div className="mt-5 text-center text-xs text-white/85">
+            <div className="mt-5 text-center text-xs text-violet-700">
               {mode === "register" ? (
                 <button type="button" className="underline underline-offset-4" onClick={() => setMode("login")}>
                   حساب دارید؟ ورود

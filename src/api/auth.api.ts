@@ -20,6 +20,17 @@ export const getMe = (token) =>
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
+// Update the signed-in user's own profile (name / phone / address).
+export const updateMe = (payload, token) =>
+  apiFetch(buildApiUrl("auth", "/me"), {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
 export const listUsers = (params, token) => {
   const search = new URLSearchParams();
   if (params?.q) search.set("q", params.q);
