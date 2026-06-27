@@ -1,91 +1,77 @@
+function categoryLabel(value) {
+  if (value === "all") return "همه دسته‌ها";
+  if (value === "general") return "عمومی";
+  return value;
+}
+
+// Vertical, all-Persian filter panel used as a sidebar on the products page.
 export default function ProductFilters({
   query,
   onQuery,
   category,
   categories,
   onCategory,
-  brand,
-  brands,
-  onBrand,
-  gender,
-  onGender,
   priceMin,
   priceMax,
   onPriceMin,
   onPriceMax,
-  compact,
+  onReset,
 }) {
-  if (compact) {
-    return (
-      <div className="w-full rounded-full bg-white p-2 shadow-sm">
-        <input
-          value={query}
-          onChange={(event) => onQuery(event.target.value)}
-          placeholder="Search"
-          className="w-full rounded-full border border-violet-200 px-3 py-2"
-        />
-      </div>
-    );
-  }
+  const fieldClass = "w-full rounded border border-violet-200 px-3 py-2 focus:border-violet-500 focus:outline-none";
 
   return (
-    <div className="w-full rounded bg-white p-3 shadow-sm">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-        <input
-          value={query}
-          onChange={(event) => onQuery(event.target.value)}
-          placeholder="Search"
-          className="col-span-2 rounded border border-violet-200 px-3 py-2 lg:col-span-3"
-        />
+    <div className="w-full rounded-2xl border border-violet-100 bg-white p-4 shadow-sm" dir="rtl">
+      <h2 className="mb-4 text-base font-semibold text-violet-900">فیلتر محصولات</h2>
 
-        <select
-          value={category}
-          onChange={(event) => onCategory(event.target.value)}
-          className="rounded border border-violet-200 px-3 py-2"
+      <div className="grid gap-4">
+        <label className="grid gap-1 text-sm text-violet-900">
+          جستجو
+          <input
+            value={query}
+            onChange={(event) => onQuery(event.target.value)}
+            placeholder="نام محصول..."
+            className={fieldClass}
+          />
+        </label>
+
+        <label className="grid gap-1 text-sm text-violet-900">
+          دسته‌بندی
+          <select value={category} onChange={(event) => onCategory(event.target.value)} className={fieldClass}>
+            {categories.map((item) => (
+              <option value={item} key={item}>
+                {categoryLabel(item)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid gap-1 text-sm text-violet-900">
+          محدوده قیمت (تومان)
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={priceMin}
+              onChange={(event) => onPriceMin(event.target.value)}
+              placeholder="حداقل"
+              inputMode="numeric"
+              className={fieldClass}
+            />
+            <input
+              value={priceMax}
+              onChange={(event) => onPriceMax(event.target.value)}
+              placeholder="حداکثر"
+              inputMode="numeric"
+              className={fieldClass}
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onReset}
+          className="mt-1 rounded border border-violet-200 px-3 py-2 text-sm text-violet-700 transition hover:bg-violet-50"
         >
-          {categories.map((item) => (
-            <option value={item} key={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={brand}
-          onChange={(event) => onBrand(event.target.value)}
-          className="rounded border border-violet-200 px-3 py-2"
-        >
-          {brands.map((item) => (
-            <option value={item} key={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={gender}
-          onChange={(event) => onGender(event.target.value)}
-          className="rounded border border-violet-200 px-3 py-2"
-        >
-          <option value="all">All</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="unisex">Unisex</option>
-        </select>
-
-        <input
-          value={priceMin}
-          onChange={(event) => onPriceMin(event.target.value)}
-          placeholder="Min price"
-          className="rounded border border-violet-200 px-3 py-2"
-        />
-
-        <input
-          value={priceMax}
-          onChange={(event) => onPriceMax(event.target.value)}
-          placeholder="Max price"
-          className="rounded border border-violet-200 px-3 py-2"
-        />
+          پاک کردن فیلترها
+        </button>
       </div>
     </div>
   );
