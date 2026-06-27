@@ -15,6 +15,8 @@ type Product = {
   imageId?: string;
   imageUrl?: string;
   extraDescription?: string;
+  discount?: number;
+  specialOffer?: boolean;
 };
 
 const fallbackImage = (seed: string) => `https://picsum.photos/seed/${encodeURIComponent(seed)}/1200/900`;
@@ -53,14 +55,18 @@ export default function HomePage() {
   const topSlides = useMemo(() => products.slice(0, 4), [products]);
   const editorialRows = useMemo(() => products.slice(0, 4), [products]);
 
+  // Special offers are curated by the admin: a product appears here when it is
+  // flagged as a special offer or has a discount percentage set in the panel.
   const discountCards = useMemo(
     () =>
-      products.slice(0, 6).map((product, index) => {
-        const off = [15, 20, 25, 30, 35, 40][index] || 15;
-        const price = Number(product.price || 0);
-        const finalPrice = Math.max(0, Math.round(price * (1 - off / 100)));
-        return { product, off, finalPrice, price };
-      }),
+      products
+        .filter((product) => product.specialOffer || Number(product.discount) > 0)
+        .map((product) => {
+          const off = Math.min(100, Math.max(0, Number(product.discount || 0)));
+          const price = Number(product.price || 0);
+          const finalPrice = Math.max(0, Math.round(price * (1 - off / 100)));
+          return { product, off, finalPrice, price };
+        }),
     [products]
   );
 
@@ -224,6 +230,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {discountCards.length > 0 && (
       <section className="mx-auto w-full max-w-7xl px-6 pb-16 md:px-10">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="font-serif text-3xl text-violet-950">تخفیفات ویژه</h3>
@@ -233,7 +240,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {discountCards.slice(0, 3).map(({ product, off, finalPrice, price }) => (
+          {discountCards.slice(0, 6).map(({ product, off, finalPrice, price }) => (
             <article key={`${product.id}-discount`} className="rounded-sm border border-violet-200/60 bg-white p-4 shadow-sm">
               <div className="relative mb-4 overflow-hidden rounded-[20px]">
                 <img
@@ -266,6 +273,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       <section className="relative my-4 h-36 w-full overflow-hidden border-y border-violet-300/50 bg-violet-100/40 md:h-44">
         <img
