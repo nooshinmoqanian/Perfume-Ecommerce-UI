@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   createCategory,
   createProduct,
@@ -18,6 +19,7 @@ import {
   uploadProductImage,
 } from "../api";
 import Modal from "../components/common/Modal";
+import DiscountManager from "../components/admin/DiscountManager";
 import { clearAuthToken, DEV_ADMIN_TOKEN, getAuthToken } from "../hooks/useAuthToken";
 import { showToast } from "../hooks/useToast";
 import { formatToman } from "../utils/format";
@@ -115,6 +117,7 @@ export default function AdminPage() {
     () => [
       { key: "add-product", label: "افزودن محصول" },
       { key: "products", label: `محصولات (${products.length})` },
+      { key: "discounts", label: "تخفیفات ویژه" },
       { key: "orders", label: `سفارش‌ها (${orders.length})` },
       { key: "notifications", label: `اعلان‌ها (${notifications.length})` },
       { key: "users", label: `کاربران (${users.length})` },
@@ -417,8 +420,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-violet-50 px-4 py-6 text-right md:px-6" dir="rtl">
-      <div className="mx-auto max-w-7xl lg:flex lg:flex-row-reverse lg:items-start lg:gap-6">
-        <aside className="mb-4 rounded-2xl border border-violet-200 bg-white p-3 shadow-sm lg:sticky lg:top-24 lg:mb-0 lg:w-72">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start">
+        <aside className="rounded-2xl border border-violet-200 bg-white p-3 shadow-sm lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:w-72 lg:shrink-0 lg:overflow-auto">
           <h1 className="mb-3 px-2 text-lg font-bold text-violet-900">پنل مدیریت</h1>
           <nav className="grid gap-1">
             {tabs.map((tab) => (
@@ -435,6 +438,16 @@ export default function AdminPage() {
               </button>
             ))}
           </nav>
+
+          <div className="mt-3 border-t border-violet-100 pt-3">
+            <Link
+              to="/"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-100 px-3 py-2 text-sm text-violet-800 transition hover:bg-violet-200"
+            >
+              <span aria-hidden>🏠</span>
+              مشاهده سایت
+            </Link>
+          </div>
         </aside>
 
         <main className="flex-1 rounded-2xl border border-violet-200 bg-white p-4 shadow-sm md:p-6">
@@ -644,6 +657,12 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+            </section>
+          )}
+
+          {activeTab === "discounts" && (
+            <section>
+              <DiscountManager products={products} onSaved={fetchProducts} />
             </section>
           )}
 
